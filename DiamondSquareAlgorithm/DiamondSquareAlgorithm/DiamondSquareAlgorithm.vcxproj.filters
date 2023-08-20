@@ -1,3 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\Application.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\DiamondSquareSEQ.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\GeneratePPMImage.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\RandNumberGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CPUProgram\API\DSSequential\DiamondSquareSEQ.h" />
+    <ClInclude Include="src\CPUProgram\API\GeneratePPMImage.h" />
+    <ClInclude Include="src\CPUProgram\API\Utils\RandNumberGenerator.h" />
+  </ItemGroup>
 </Project>

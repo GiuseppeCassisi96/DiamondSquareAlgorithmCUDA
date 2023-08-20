@@ -10,9 +10,21 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\Application.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\DiamondSquareSEQ.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\GeneratePPMImage.cpp" />
+    <ClCompile Include="src\CPUProgram\CppSource\Cpp\RandNumberGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CPUProgram\API\DSSequential\DiamondSquareSEQ.h" />
+    <ClInclude Include="src\CPUProgram\API\GeneratePPMImage.h" />
+    <ClInclude Include="src\CPUProgram\API\Utils\RandNumberGenerator.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{00238F9C-A5D8-4988-A0A6-D525E2DF8CB6}</ProjectGuid>
     <RootNamespace>DiamondSquareAlgorithm</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -47,6 +59,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\UNIMI\ProgettoGPUComputing\DiamondSquareAlgorithmCUDA\DiamondSquareAlgorithm\DiamondSquareAlgorithm\src\API;C:\UNIMI\ProgettoGPUComputing\DiamondSquareAlgorithmCUDA\DiamondSquareAlgorithm\DiamondSquareAlgorithm\src\CPUProgram\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -64,6 +78,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\UNIMI\ProgettoGPUComputing\DiamondSquareAlgorithmCUDA\DiamondSquareAlgorithm\DiamondSquareAlgorithm\src\API;C:\UNIMI\ProgettoGPUComputing\DiamondSquareAlgorithmCUDA\DiamondSquareAlgorithm\DiamondSquareAlgorithm\src\CPUProgram\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
