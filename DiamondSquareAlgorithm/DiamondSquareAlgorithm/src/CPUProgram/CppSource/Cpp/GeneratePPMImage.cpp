@@ -2,11 +2,13 @@
 
 #include <iomanip>
 
-PPMImage::PPMImage(float maxPixelValue, int size, std::vector<float> heightMapData, std::string filePath) :
+PPMImage::PPMImage(float maxPixelValue, int size, float* heightMapData, std::string filePath) :
 heightMapData(heightMapData), size(size), maxPixelValue(maxPixelValue)
 {
 	image.open(filePath);
 }
+
+
 
 void PPMImage::Generation()
 {

@@ -8,7 +8,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CPUProgram\API\DSSequential\DiamondSquareSEQ.h" />
-    <ClInclude Include="src\CPUProgram\API\GeneratePPMImage.h" />
+    <ClInclude Include="src\GeneratePPMImage.h" />
     <ClInclude Include="src\CPUProgram\API\Utils\RandNumberGenerator.h" />
+    <ClInclude Include="src\CUDAProgram\API\DSParallel\DiamondSquarePAR.h" />
+    <ClInclude Include="src\CUDAProgram\API\Utils\RandNumGenDevice.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\CUDAProgram\CUSource\CU\DiamondSquarePAR.cu" />
   </ItemGroup>
 </Project>

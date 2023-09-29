@@ -6,9 +6,9 @@ class PPMImage
 {
 public:
 	std::ofstream image;
-	std::vector<float> heightMapData;
+	float* heightMapData;
 	float maxPixelValue;
 	int size;
-	PPMImage(float maxPixelValue, int size, std::vector<float> heightMapData, std::string filePath = "Image.ppm");
+	PPMImage(float maxPixelValue, int size, float* heightMapData, std::string filePath = "Image.ppm");
 	void Generation();
 };
