@@ -4,23 +4,34 @@
 #include "CUDAProgram/API/DSParallel/DiamondSquarePAR.h"
 #include "GeneratePPMImage.h"
 #include "cuda_runtime.h"
-//MAX dim for the problem is 12 (2^12) 
-//rand value must ranged between 100.0f and 200.0f
-//TODO Measure the execution time of the sequential method and parallel too
-//TODO Use Nsight Compute to measure the occupancy  
+//MAX dim for the problem is 12 (2^12) only 4k images
 int main()
 {
-	std::cout << "START SEQ EXE\n";
-	DiamondSquareSEQ DSSEQ (12, 0.0f, 255.0f, 300.0f);
+	float timeCPU = 0.0f, timeGPU = 0.0f;
+	cudaEvent_t startCPU, stopCPU, startGPU, stopGPU;
+	cudaEventCreate(&startCPU);
+	cudaEventCreate(&stopCPU);
+	cudaEventCreate(&startGPU);
+	cudaEventCreate(&stopGPU);
+
+	cudaEventRecord(startCPU);
+	DiamondSquareSEQ DSSEQ (10, 0.0f, 255.0f, 200.0f);
 	DSSEQ.InitializationDiamondSquare();
 	DSSEQ.RunDiamondSquare();
-	std::cout << "STOP SEQ EXE\n";
+	cudaEventRecord(stopCPU);
+	cudaEventSynchronize(stopCPU);
+	cudaEventElapsedTime(&timeCPU, startCPU, stopCPU);
 
-	std::cout << "START PARALLEL EXE\n";
-	DiamondSquarePAR DSPAR(12, 0.0f, 255.0f, 300.0f);
+	cudaEventRecord(startGPU);
+	DiamondSquarePAR DSPAR(10, 0.0f, 255.0f, 200.0f);
 	DSPAR.InitializationDS();
 	DSPAR.RunDiamondSquare();
-	std::cout << "STOP PARALLEL EXE\n";
+	cudaEventRecord(stopGPU);
+	cudaEventSynchronize(stopGPU);
+	cudaEventElapsedTime(&timeGPU, startGPU, stopGPU);
+	std::cout << "TIME CPU: " << timeCPU << "\n";
+	std::cout << "TIME GPU: " << timeGPU << "\n";
+	std::cout << "Speedup: " << timeCPU / timeGPU << "\n";
 
 	/*DSPAR.PrintMap();*/
 	std::cout << "CREATE IMAGE\n";

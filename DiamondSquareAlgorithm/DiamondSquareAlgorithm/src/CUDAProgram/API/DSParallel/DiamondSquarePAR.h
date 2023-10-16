@@ -22,7 +22,7 @@ private:
 	int half;
 	unsigned int totalSize;
 	int algoStep = 0;
-	int threadAmount;
+	int TwoKElements;
 	void DiamondStep();
 	void SquareStep();
 	void  ComputeBlockGridSizes();

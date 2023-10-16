@@ -28,7 +28,7 @@
 
 
 int blockSizeDiamond, blockXSizeSquare, blockYSizeSquare;
-int gridSizeDiamond, gridSizeXSquare, gridSizeYSquare;
+int gridSizeDiamond, gridSizeSquare;
 RandNumberGenerator generator;
 
 //DEVICE FUNCTIONS
@@ -58,21 +58,18 @@ __global__ void KERNEL_DiamondStep(int chunkSize, float* HeightMap, int HeightMa
 	float randMagnitude, int half, curandState* ranGenStates,
 	float minHeightValue, float maxHeightValue)
 {
-	unsigned const int idx = blockDim.x * blockIdx.x + threadIdx.x;
-	unsigned const int idy = blockDim.y * blockIdx.y + threadIdx.y;
-	unsigned const int x = idx * chunkSize;
-	unsigned const int y = idy * chunkSize;
-	unsigned const int index = (idy * HeightMapSize + idx);
+	unsigned const int x = (blockDim.x * blockIdx.x + threadIdx.x) * chunkSize;
+	unsigned const int y = (blockDim.y * blockIdx.y + threadIdx.y) * chunkSize;
 	if (x > HeightMapSize || y > HeightMapSize)
 	{
 		return;
 	}
-	float const randValue = GenerateFloatGPU(ranGenStates, randMagnitude,index);
 	float value = HeightMap[y * HeightMapSize + x] + HeightMap[y * HeightMapSize + (x + chunkSize)] +
 		HeightMap[(y + chunkSize) * HeightMapSize + x] + 
 		HeightMap[(y + chunkSize) * HeightMapSize + (x + chunkSize)];
 	value /= 4.0f;
-	value += randValue;
+	value += GenerateFloatGPU(ranGenStates, randMagnitude, (blockDim.x * blockIdx.x + threadIdx.x) *
+		HeightMapSize + (blockDim.y * blockIdx.y + threadIdx.y));
 	value = clamp(value, minHeightValue, maxHeightValue);
 	HeightMap[(y + half) * HeightMapSize + (x + half)] = value;
 	
@@ -81,45 +78,70 @@ __global__ void KERNEL_DiamondStep(int chunkSize, float* HeightMap, int HeightMa
 __global__ void KERNEL_SquareStep(int chunkSize, float* HeightMap, int HeightMapSize,
 	float randMagnitude, int half, curandState* ranGenStates, float minHeight, float maxHeight)
 {
-	unsigned const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
-	unsigned const  int index = y * HeightMapSize + idx;
-
-	unsigned const  int x = idx * chunkSize * (y % 2 == 0)
+	unsigned const  int x = (blockIdx.x * blockDim.x + threadIdx.x) * chunkSize * (y % 2 == 0)
 		+ y * half * (y % 2 != 0);
-
 	y = (y * half + half) * (y % 2 == 0)
-		+ idx * chunkSize * (y % 2 != 0);
+		+ (blockIdx.x * blockDim.x + threadIdx.x) * chunkSize * (y % 2 != 0);
 	
 	if (x > HeightMapSize || y > HeightMapSize)
 	{
 		return;
 	}
-	float const randValue = GenerateFloatGPU(ranGenStates, randMagnitude, index);
 	float value = 0.0f;
 
+	//FIRST ELEMENT
 	int currentIndex = static_cast<int>((x - half) * HeightMapSize + y);
-	value += HeightMap[currentIndex] * static_cast<float>((currentIndex >= 0));
-	value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, index)
-	* static_cast<float>(!(currentIndex >= 0));
+	if(currentIndex >= 0)
+	{
+		value += HeightMap[currentIndex];
+	}
+	else
+	{
+		value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, 
+			(blockIdx.y * blockDim.y + threadIdx.y) * HeightMapSize + (blockIdx.x * blockDim.x + threadIdx.x));
+	}
 
+	//SECOND ELEMENT
 	currentIndex = static_cast<int>(x * HeightMapSize + (y - half));
-	value += HeightMap[currentIndex] * static_cast<float>((currentIndex >= 0));
-	value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, index)
-	* static_cast<float>(!(currentIndex >= 0));
+	if (currentIndex >= 0)
+	{
+		value += HeightMap[currentIndex];
+	}
+	else
+	{
+		value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, 
+			(blockIdx.y * blockDim.y + threadIdx.y) * HeightMapSize + (blockIdx.x * blockDim.x + threadIdx.x));
+	}
 
-	currentIndex = currentIndex = static_cast<int>(x * HeightMapSize + (y + half));
-	value += HeightMap[currentIndex] * static_cast<float>((currentIndex < (HeightMapSize* HeightMapSize)));
-	value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, index)
-	* static_cast<float>(!(currentIndex < (HeightMapSize* HeightMapSize)));
+	//THIRD ELEMENT
+	currentIndex = static_cast<int>(x * HeightMapSize + (y + half));
+	if (currentIndex < HeightMapSize * HeightMapSize)
+	{
+		value += HeightMap[currentIndex];
+	}
+	else
+	{
+		value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, 
+			(blockIdx.y * blockDim.y + threadIdx.y) * HeightMapSize + (blockIdx.x * blockDim.x + threadIdx.x));
+	}
 
-	currentIndex = currentIndex = static_cast<int>((x + half) * HeightMapSize + y);
-	value += HeightMap[currentIndex] * static_cast<float>((currentIndex < (HeightMapSize* HeightMapSize)));
-	value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, index)
-	* static_cast<float>(!(currentIndex < (HeightMapSize* HeightMapSize)));
+	//FOURTH ELEMENT
+	currentIndex = static_cast<int>((x + half) * HeightMapSize + y);
+	if (currentIndex < HeightMapSize * HeightMapSize)
+	{
+		value += HeightMap[currentIndex];
+	}
+	else
+	{
+		value += GenerateFloatInRangeGPU(ranGenStates, minHeight, maxHeight, 
+			(blockIdx.y * blockDim.y + threadIdx.y) * HeightMapSize + (blockIdx.x * blockDim.x + threadIdx.x));
+	}
 
+	//FINAL COMPUTATION
 	value /= 4.0f;
-	value += randValue;
+	value += GenerateFloatGPU(ranGenStates, randMagnitude, 
+		(blockIdx.y * blockDim.y + threadIdx.y) * HeightMapSize + (blockIdx.x * blockDim.x + threadIdx.x));
 	value = clamp(value, minHeight, maxHeight);
 	HeightMap[x * HeightMapSize + y] = value;
 }
@@ -128,19 +150,22 @@ __global__ void KERNEL_SquareStep(int chunkSize, float* HeightMap, int HeightMap
 //HOST FUNCTIONS
 void DiamondSquarePAR::ComputeBlockGridSizes()
 {
-	/*			  2^k			  or			  MAX_BLOCK_SIZE			  */
-	blockSizeDiamond = threadAmount <= MAX_BLOCK_SIZE ? threadAmount : MAX_BLOCK_SIZE;
-	/*		(2^k + 1) x 2^(k+1)	  or	SQUARE_BLOCK_X_SIZE x MAX_BLOCK_SIZE
-	*		        k <= 3					     k > 3						  */
-	blockXSizeSquare = threadAmount < SQUARE_BLOCK_X_SIZE ? blockSizeDiamond + 1 : SQUARE_BLOCK_X_SIZE;
-	blockYSizeSquare = threadAmount <= SQUARE_BLOCK_X_SIZE ? threadAmount * 2 : blockSizeDiamond;
+	//It can be 1 or 32 at maximum. The size is 2^k until it reaches the max block size 
+	blockSizeDiamond = TwoKElements <= MAX_BLOCK_SIZE ? TwoKElements : MAX_BLOCK_SIZE;
+	/* The size is 2^k + 1 until it reaches the max X dim for the block, in this case will be always
+	* the max X dim for the block*/
+	blockXSizeSquare = TwoKElements < SQUARE_BLOCK_X_SIZE ? blockSizeDiamond + 1 : SQUARE_BLOCK_X_SIZE;
+	//The size is 2^(k+1) until it reaches the X dim for the block, in this case the dim will be always 2^k
+	blockYSizeSquare = TwoKElements <= SQUARE_BLOCK_X_SIZE ? TwoKElements * 2 : blockSizeDiamond;
 
-	/*				  1			  or			2^k / MAX_BLOCK_SIZE		  */
-	gridSizeDiamond = (threadAmount + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
-	/* SQUARE_BLOCK_X_SIZE x MAX_BLOCK_SIZE			block amount
-	 * = (2^(k+1) / MAX_BLOCK_SIZE)  x	 (2^k / SQUARE_BLOCK_X_SIZE) + 1	  */
-	gridSizeXSquare = threadAmount < SQUARE_BLOCK_X_SIZE ? 1 : (threadAmount / SQUARE_BLOCK_X_SIZE) + 1;
-	gridSizeYSquare = (threadAmount * 2 + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
+	/*With this formula every time my TwoKElements over a multiple of 32 (32, 64, 96, ecc) I increment the
+	* grid size exponentially (powers of 2)*/
+	gridSizeDiamond = (TwoKElements + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
+	/*With this formula every time the double of TwoKElements over a multiple of 32 (32, 64, 96, ecc)
+	 *I increment the grid size exponentially (powers of 2)*/
+	gridSizeSquare = (TwoKElements * 2 + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
+
+
 }
 
 
@@ -166,7 +191,7 @@ maxHeightValue(maxHeightValue), randomMagnitude(randomValue)
 	//chunkSize, half and threadAmount computation 
 	chunkSize = HeightMapSize - 1;
 	half = chunkSize / 2;
-	threadAmount = (HeightMapSize - 1) / chunkSize;
+	TwoKElements = (HeightMapSize - 1) / chunkSize;
 }
 
 void DiamondSquarePAR::InitializationDS()
@@ -206,7 +231,7 @@ void DiamondSquarePAR::DiamondStep()
 void DiamondSquarePAR::SquareStep()
 {
 	dim3 block_dim(blockXSizeSquare, blockYSizeSquare);
-	dim3 grid_dim(gridSizeXSquare, gridSizeYSquare);
+	dim3 grid_dim(gridSizeSquare, gridSizeSquare);
 	KERNEL_SquareStep <<<grid_dim, block_dim >>> (chunkSize, HeightMapGPU,
 		HeightMapSize, randomMagnitude, half, states, minHeightValue, maxHeightValue);
 	cudaCheckError()
@@ -224,7 +249,7 @@ void DiamondSquarePAR::RunDiamondSquare()
 		chunkSize /= 2;
 		half = chunkSize / 2;
 		algoStep++;
-		threadAmount *= 2;
+		TwoKElements *= 2;
 	}
 	cudaMemcpy(HeightMap, HeightMapGPU, byteSize, cudaMemcpyDeviceToHost);
 	//Free memories

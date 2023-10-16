@@ -11,7 +11,7 @@ curandState* states;
 __device__ float GenerateFloatGPU(curandState* randGenstates, float randMagnitude, unsigned int index)
 {
 	curandState state = randGenstates[index];
-	float randValue = curand_normal(&state) * randMagnitude;
+	float randValue = (-1.0f + curand_uniform(&state) * 2.0f) * randMagnitude;
 	randGenstates[index] = state;
 	return randValue;
 }
@@ -19,7 +19,7 @@ __device__ float GenerateFloatGPU(curandState* randGenstates, float randMagnitud
 __device__ float GenerateFloatInRangeGPU(curandState* randGenstates, float min ,float max, unsigned int index)
 {
 	curandState state = randGenstates[index];
-	float randValue = min + curand_normal(&state) * (max - min);
+	float randValue = min + curand_uniform(&state) * (max - min);
 	randGenstates[index] = state;
 	return randValue;
 }
