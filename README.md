@@ -1,2 +1,6 @@
 # DiamondSquareAlgorithmCUDA
-In this project, I developed a C++ application that generates a height map using the Diamond Square algorithm. The main focus of my project was to develop two different versions of the algorithm in order to compare them. The first version runs sequentially on the CPU, while the second version runs in parallel on the GPU. I used the CUDA API to develop the second version. The application compares the two versions and computes the speedup achieved with the parallel version. Then, the application uses the generated height map to create an image in .ppm format. This project was made for an university course called "GPU Computing," taught by Professor G. Grossi.
+I developed a C++ application that uses the Diamond-Square algorithm to create heightmaps
+procedurally. I used the CUDA API to execute the algorithm on the GPU. I developed two versions of the
+algorithm: a sequential one that runs on the CPU and a parallel one that runs on the GPU. I compared
+the two versions to measure the speedup obtained by the parallel one compared to the sequential
+one.
